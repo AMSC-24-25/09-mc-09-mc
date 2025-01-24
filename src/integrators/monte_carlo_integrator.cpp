@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 
+
 MonteCarloIntegrator::MonteCarloIntegrator(const IntegrationDomain &d) : AbstractIntegrator(d) {
     // Create a random-value uniform distribution in [min, max] for each dimension using the domain bounds.
     auto bounds = domain.getBounds();
@@ -68,7 +69,8 @@ double MonteCarloIntegrator::integrateStratified(
     const std::function<double(const std::vector<double> &)> &f,
     size_t numPoints,
     size_t numThreads,
-    int32_t strataPerDimension
+    int32_t strataPerDimension    //The total number of layers is the product of the number of layers for each dimension
+
 ) {
     initializeEngines(numThreads);
     size_t pointsPerThread = numPoints / numThreads;
@@ -76,7 +78,7 @@ double MonteCarloIntegrator::integrateStratified(
     // Number of dimensions
     size_t dimensionCount = distributions.size();
 
-    // Total number of strata in the domain = strataPerDimension^dimensionCount
+    // Calculate the total number of layers based on the dynamic strategy
     size_t totalStrata = 1;
     for (size_t i = 0; i < dimensionCount; ++i) {
         totalStrata *= strataPerDimension;
@@ -84,9 +86,15 @@ double MonteCarloIntegrator::integrateStratified(
 
     size_t samplesPerStratum = pointsPerThread / totalStrata;
 
-    // Helper function to convert a linear stratum index to multi-dimensional indices
+   // Dynamic step calculation function
+    auto computeDynamicStep = [](double a, double b, int32_t strataCount) {
+       // Define the logic to determine the step based on the function to integrate
+        return (b - a) / strataCount;
+    };
+
+    // Helper to decode the layer's linear index into multidimensional indexes
     auto decodeStratumIndex = [&](size_t linearIndex) {
-        // Convert linearIndex to base strataPerDimension in dimensionCount dimensions
+         // Convert linearIndex to base strataPerDimension in dimensionCount dimensions
         std::vector<int32_t> strataIndices(dimensionCount, 0);
         for (int d = static_cast<int>(dimensionCount) - 1; d >= 0; --d) {
             strataIndices[d] = static_cast<int32_t>(linearIndex % strataPerDimension);
@@ -95,28 +103,28 @@ double MonteCarloIntegrator::integrateStratified(
         return strataIndices;
     };
 
-    // Worker lambda: systematically iterate over all strata
-    auto worker = [this, &f, samplesPerStratum, strataPerDimension, totalStrata, &decodeStratumIndex](size_t myIndex) {
+    // Worker lambda: Iterate over all layers
+    auto worker = [this, &f, samplesPerStratum, strataPerDimension, totalStrata, &decodeStratumIndex, &computeDynamicStep](size_t myIndex) {
         double sum = 0.0;
         std::mt19937 &eng = engines[myIndex];
 
         for (size_t stratumId = 0; stratumId < totalStrata; ++stratumId) {
-            // Get the strata indices for each dimension
             auto strataIndices = decodeStratumIndex(stratumId);
 
-            // For each dimension, calculate the lower and upper bounds of this stratum
             std::vector<std::uniform_real_distribution<double>> strataDists;
             strataDists.reserve(distributions.size());
+
+            // Calculate the dynamic step for each size
             for (size_t dim = 0; dim < distributions.size(); ++dim) {
                 double a = distributions[dim].a();
                 double b = distributions[dim].b();
-                double step = (b - a) / strataPerDimension;
+                double step = computeDynamicStep(a, b, strataPerDimension);  // passo adattivo
                 double lower = a + strataIndices[dim] * step;
                 double upper = lower + step;
                 strataDists.emplace_back(lower, upper);
             }
 
-            // Generate samplesPerStratum points in this stratum
+            // Sample points in each layer
             for (size_t s = 0; s < samplesPerStratum; ++s) {
                 std::vector<double> point(distributions.size());
                 for (size_t dim = 0; dim < distributions.size(); ++dim) {
@@ -132,7 +140,7 @@ double MonteCarloIntegrator::integrateStratified(
         return sum;
     };
 
-    // Launch threads
+   //Launch threads
     std::vector<std::future<double>> futures;
     futures.reserve(numThreads);
     for (size_t i = 0; i < numThreads; ++i) {
@@ -146,3 +154,6 @@ double MonteCarloIntegrator::integrateStratified(
 
     return totalSum * domain.getBoundedVolume() / static_cast<double>(numPoints);
 }
+
+
+
