@@ -1,76 +1,90 @@
 #include "polytope.h"
-#include <limits>
-#include <stdexcept>
-#include <cmath>
+#include <libqhullcpp/Qhull.h>
+#include <libqhullcpp/QhullFacet.h>
+#include <libqhullcpp/QhullFacetList.h>
+#include <libqhullcpp/QhullVertex.h>
+#include <libqhullcpp/QhullVertexSet.h>
+#include <Eigen/Dense>
 #include <iostream>
-#include <numeric>
-#include "polytope.h"
 #include <stdexcept>
+#include <cdd/setoper.h>
+#include <cdd/cdd.h>
+#include <numeric>
 
 // Constructor
-Polytopes::Polytopes(const std::vector<std::vector<double>>& A, const std::vector<double>& b)
-    : A(A), b(b) {
-    if (A.empty() || b.empty()) {
-        throw std::invalid_argument("Matrix A and vector b cannot be empty.");
+Polytopes::Polytopes(const std::vector<std::vector<double>>& vertices)
+    : vertices(vertices) {
+    if (vertices.empty()) {
+        throw std::invalid_argument("The vertices cannot be empty.");
     }
-    if (A.size() != b.size()) {
-        throw std::invalid_argument("The number of rows in A must match the size of b.");
-    }
-} 
+}
+
 
 // Check if a point lies within the polytope
-bool Polytopes::contains(const std::vector<double> &point) const {
-    if (point.size() != A[0].size()) {
+bool Polytopes::contains(const std::vector<double>& point) const {
+    size_t n_points = vertices.size(); // Number of vertices
+    size_t n_dim = point.size();       // Dimensionality of the point
+
+    // Ensure the point and vertices have compatible dimensions
+    if (n_dim != vertices[0].size()) {
         throw std::invalid_argument("Point dimensionality does not match the polytope.");
     }
 
-   for (size_t i = 0; i < A.size(); ++i) {
-    double dotProduct = std::inner_product(A[i].begin(), A[i].end(), point.begin(), 0.0);
-
-    std::cout << "Testing inequality " << i << ": "
-              << "dotProduct = " << dotProduct << ", b[" << i << "] = " << b[i] << "\n";
-
-    if (dotProduct > b[i] + 1e-9) {
-        std::cout << "Point (" << point[0] << ", " << point[1] << ") fails inequality " << i << "\n";
-        return false;
-}
+    // Formulate the A_eq matrix (transpose of vertices + 1 row of ones)
+    Eigen::MatrixXd A_eq(n_dim + 1, n_points);
+    for (size_t i = 0; i < n_points; ++i) {
+        for (size_t j = 0; j < n_dim; ++j) {
+            A_eq(j, i) = vertices[i][j]; // Transpose of vertices
+        }
+        A_eq(n_dim, i) = 1.0; // Last row is all ones
     }
-    return true;
+
+    // Formulate the b_eq vector (the target point + 1 for convex combination)
+    Eigen::VectorXd b_eq(n_dim + 1);
+    for (size_t i = 0; i < n_dim; ++i) {
+        b_eq(i) = point[i];
+    }
+    b_eq(n_dim) = 1.0;
+
+    // Objective function (minimize a zero vector since we're only checking feasibility)
+    Eigen::VectorXd c = Eigen::VectorXd::Zero(n_points);
+
+    // Solve the linear programming problem using a simplex algorithm
+    Eigen::VectorXd solution(n_points);
+    try {
+        // Use Eigen's full-pivot solver to find a solution
+        Eigen::ColPivHouseholderQR<Eigen::MatrixXd> solver(A_eq.transpose());
+        solution = solver.solve(b_eq);
+
+        // Check if all coefficients are non-negative (convex combination constraint)
+        for (size_t i = 0; i < n_points; ++i) {
+            if (solution(i) < -1e-9) {
+                return false; // Not a valid convex combination
+            }
+        }
+        return true; // Point is inside the convex hull
+    } catch (...) {
+        return false; // If any error occurs during the solving process
+    }
 }
 
-
-// Return the dimensions of the polytope
 size_t Polytopes::getDimensions() const {
-    return A[0].size();
+    return vertices.empty() ? 0 : vertices[0].size();
 }
 
 
 std::vector<std::pair<double, double>> Polytopes::getBounds() const {
-    size_t dimensions = A[0].size();
-    std::vector<std::pair<double, double>> bounds(dimensions, {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()});
+    size_t dimensions = getDimensions();
 
-    for (size_t dim = 0; dim < dimensions; ++dim) {
-        double minBound = std::numeric_limits<double>::lowest();
-        double maxBound = std::numeric_limits<double>::max();
+    // Initialize bounds for each dimension
+    std::vector<std::pair<double, double>> bounds(dimensions, {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()});
 
-        for (size_t i = 0; i < A.size(); ++i) {
-            if (A[i][dim] != 0) {  // Only consider constraints involving this dimension
-                double bound = b[i] / A[i][dim];
-
-                if (A[i][dim] > 0) {
-                    maxBound = std::min(maxBound, bound);
-                } else {
-                    minBound = std::max(minBound, bound);
-                }
-            }
+    // Iterate through the vertices to compute the min and max for each dimension
+    for (const auto& vertex : vertices) {
+        for (size_t dim = 0; dim < dimensions; ++dim) {
+            bounds[dim].first = std::min(bounds[dim].first, vertex[dim]);  // Update minimum
+            bounds[dim].second = std::max(bounds[dim].second, vertex[dim]); // Update maximum
         }
-
-        // Validate bounds for this dimension
-        if (minBound > maxBound) {
-            throw std::runtime_error("Invalid bounds: check the polytope definition.");
-        }
-
-        bounds[dim] = {std::max(0.0, minBound), std::min(1.0, maxBound)};
     }
 
     return bounds;
@@ -80,8 +94,95 @@ std::vector<std::pair<double, double>> Polytopes::getBounds() const {
 
 
 
-
-// Return the approximate volume of the polytope (default: -1 for no calculation)
 double Polytopes::getBoundedVolume() const {
-    return -1.0; // Not used with Metropolis-Hastings
+    // Decompose the polytope into simplexes
+    auto simplexes = decomposePolytope(vertices);
+
+    // Calculate the total volume by summing up simplex volumes
+    double totalVolume = 0.0;
+    for (const auto& simplex : simplexes) {
+        double simplexVolume = calculateSimplexVolume(simplex);
+        totalVolume += simplexVolume;
+    }
+
+    return totalVolume;
+}
+
+
+// Function to decompose a 15D polytope into simplexes
+std::vector<std::vector<std::vector<double>>> Polytopes::decomposePolytope (
+    const std::vector<std::vector<double>>& vertices) const {
+    size_t dimensions = vertices[0].size(); // Dimensionality (15 for 15D)
+    size_t numPoints = vertices.size();
+
+    // Flatten the vertices for Qhull
+    std::vector<double> flatVertices;
+    for (const auto& vertex : vertices) {
+        flatVertices.insert(flatVertices.end(), vertex.begin(), vertex.end());
+    }
+
+    // Run Qhull to compute the convex hull
+    orgQhull::Qhull qhull;
+    qhull.runQhull("", dimensions, numPoints, flatVertices.data(), "Qt");
+
+    // Compute the centroid of the polytope
+    std::vector<double> centroid(dimensions, 0.0);
+    for (const auto& vertex : vertices) {
+        for (size_t i = 0; i < dimensions; ++i) {
+            centroid[i] += vertex[i];
+        }
+    }
+    for (size_t i = 0; i < dimensions; ++i) {
+        centroid[i] /= numPoints;
+    }
+
+   
+    std::vector<std::vector<std::vector<double>>> simplexes;
+    for (const auto& facet : qhull.facetList()) {
+        if (!facet.isGood()) continue; // Skip invalid facets
+
+        // Extract facet vertices
+        std::vector<std::vector<double>> simplex;
+        for (const auto& vertex : facet.vertices()) {
+            simplex.push_back(vertices[vertex.point().id()]);
+        }
+
+        // Add the centroid to form a 15D simplex
+        simplex.push_back(centroid);
+
+        // Validate simplex size
+        if (simplex.size() != dimensions + 1) {
+            std::cerr << "Warning: Invalid simplex size after adding centroid.\n";
+            continue;
+        }
+
+        simplexes.push_back(simplex);
+    }
+
+    return simplexes;
+}
+
+// Calculate the volume of a simplex
+double Polytopes::calculateSimplexVolume(const std::vector<std::vector<double>>& simplexVertices) const {
+    size_t dimensions = simplexVertices[0].size(); 
+
+    // Ensure the simplex has the correct number of vertices
+    if (simplexVertices.size() != dimensions + 1) {
+        std::cerr << "Error: Simplex does not have the correct number of vertices.\n";
+        return 0.0;
+    }
+
+    // Construct the determinant matrix
+    Eigen::MatrixXd matrix(dimensions, dimensions);
+    for (size_t i = 1; i <= dimensions; ++i) {
+        for (size_t j = 0; j < dimensions; ++j) {
+            matrix(i - 1, j) = simplexVertices[i][j] - simplexVertices[0][j];
+        }
+    }
+
+    // Compute the determinant
+    double determinant = matrix.determinant();
+
+    // Compute and return the volume
+    return std::abs(determinant) / std::tgamma(dimensions + 1); // n! = Gamma(n+1)
 }
