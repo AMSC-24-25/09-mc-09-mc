@@ -20,6 +20,7 @@ Polytopes::Polytopes(const std::vector<std::vector<double>>& vertices)
 }
 
 
+
 // Check if a point lies within the polytope
 bool Polytopes::contains(const std::vector<double>& point) const {
     size_t n_points = vertices.size(); // Number of vertices
