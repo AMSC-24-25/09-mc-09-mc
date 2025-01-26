@@ -16,45 +16,62 @@ const std::vector<size_t> numPointsValues = {10'000, 100'000, 1'000'000, 10'000'
 unsigned int numThreads;
 
 void circleIntegration() {
-    // Function to integrate over the circle: x^2 + y^2
+    //Function to integrate on the circle: x^2 + y^2
     auto f = [](const std::vector<double> &x) {
         return x[0] * x[0] + x[1] * x[1];
     };
 
-    // A circle with radius 1 centered at (0, 0)
+    // Circle with radius 1 centered at (0, 0)
     Hypersphere sphere(2, 1.0);
 
-    // Monte Carlo integrator for the circle
+    // Monte Carlo integrator initialization
     MonteCarloIntegrator mcIntegrator(sphere);
 
-    std::cout << "Integrating f(x,y)=x^2+y^2 over the unit circle (radius=1):\n";
+    // Print header
+    std::cout << "Integrating f(x,y) = x^2 + y^2 over the unit circle (radius = 1):\n";
     std::cout << "Expected result (π/2): " << std::fixed << std::setprecision(6) << (M_PI / 2) << "\n\n";
     std::cout << std::setw(12) << "NumPoints"
-            << std::setw(12) << "Time (ms)"
-            << std::setw(18) << "Time stratified"
-            << std::setw(18) << "Standard Result"
-            << std::setw(20) << "Stratified Result" << "\n";
-    std::cout << std::string(83, '-') << "\n";
+              << std::setw(12) << "GridDim"
+              << std::setw(18) << "Time Std (ms)"
+              << std::setw(18) << "Time Strat (ms)"
+              << std::setw(18) << "Std Result"
+              << std::setw(20) << "Strat Result" << "\n";
+    std::cout << std::string(95, '-') << "\n";
 
-    for (size_t numPoints: numPointsValues) {
-        // Standard Monte Carlo integration on the circle
-        auto start = std::chrono::high_resolution_clock::now();
+    //Different sizes for the layered method                                        
+    std::vector<int32_t> strataPerDimValues = {5, 10, 20, 50};
+    //std::vector<int32_t> strataPerDimValues = {10, 100, 1000, 5000};        //trying something different
+
+    for (size_t numPoints : numPointsValues) {
+        // Standard method
+        auto startStd = std::chrono::high_resolution_clock::now();
         double resultStandard = mcIntegrator.integrate(f, numPoints, numThreads);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        auto endStd = std::chrono::high_resolution_clock::now();
+        auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
 
-        // Stratified Monte Carlo integration on the circle
-        int32_t strataPerDim = 10;
-        start = std::chrono::high_resolution_clock::now();
-        double resultStratified = mcIntegrator.integrateStratified(f, numPoints, numThreads, strataPerDim);
-        end = std::chrono::high_resolution_clock::now();
-        auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
+        // Printing the standard method line
         std::cout << std::setw(12) << numPoints
-                << std::setw(11) << durationStandard.count()
-                << std::setw(18) << durationStratified.count()
-                << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard
-                << std::setw(20) << resultStratified << "\n";
+                  << std::setw(12) << "N/A"  //No grid for the standard method
+                  << std::setw(18) << durationStandard.count()
+                  << std::setw(18) << "-"  // No time for the layered method
+                  << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard
+                  << std::setw(20) << "-" << "\n";
+
+        // Stratified method
+        for (int32_t strataPerDim : strataPerDimValues) {
+            auto startStrat = std::chrono::high_resolution_clock::now();
+            double resultStratified = mcIntegrator.integrateStratified(f, numPoints, numThreads, strataPerDim);
+            auto endStrat = std::chrono::high_resolution_clock::now();
+            auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(endStrat - startStrat);
+
+            // Printing of the layered method line
+            std::cout << std::setw(12) << numPoints
+                      << std::setw(12) << strataPerDim
+                      << std::setw(18) << "-"  // No time for the standard method
+                      << std::setw(18) << durationStratified.count()
+                      << std::setw(18) << "-"
+                      << std::setw(20) << resultStratified << "\n";
+        }
     }
 }
 
@@ -81,34 +98,51 @@ void triangleIntegration() {
     // The expected result is the area of the triangle = sqrt(3)/4
     double expectedTriangleArea = std::sqrt(3.0) / 4.0;
 
+    // Print header
     std::cout << "\nIntegrating f(x,y)=1 over the equilateral triangle (1,1,1):\n";
     std::cout << "Expected area: " << std::fixed << std::setprecision(6) << expectedTriangleArea << "\n\n";
     std::cout << std::setw(12) << "NumPoints"
-            << std::setw(12) << "Time (ms)"
-            << std::setw(18) << "Time stratified"
-            << std::setw(18) << "Standard Result"
-            << std::setw(20) << "Stratified Result" << "\n";
-    std::cout << std::string(83, '-') << "\n";
+              << std::setw(12) << "GridDim"
+              << std::setw(18) << "Time Std (ms)"
+              << std::setw(18) << "Time Strat (ms)"
+              << std::setw(18) << "Std Result"
+              << std::setw(20) << "Strat Result" << "\n";
+    std::cout << std::string(95, '-') << "\n";
 
-    for (size_t numPoints: numPointsValues) {
-        // Standard Monte Carlo integration on the triangle
-        auto start = std::chrono::high_resolution_clock::now();
+    // Different sizes for the layered method
+    std::vector<int32_t> strataPerDimValues = {5, 10, 20, 50};
+    //std::vector<int32_t> strataPerDimValues = {10, 100, 1000, 5000};     //trying something different
+ 
+    for (size_t numPoints : numPointsValues) {
+        // Standard method
+        auto startStd = std::chrono::high_resolution_clock::now();
         double resultStandard = mcIntegrator.integrate(f, numPoints, numThreads);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        auto endStd = std::chrono::high_resolution_clock::now();
+        auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
 
-        // Stratified Monte Carlo integration on the triangle
-        int32_t strataPerDim = 10;
-        start = std::chrono::high_resolution_clock::now();
-        double resultStratified = mcIntegrator.integrateStratified(f, numPoints, numThreads, strataPerDim);
-        end = std::chrono::high_resolution_clock::now();
-        auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
+        // Printing the line for the standard method
         std::cout << std::setw(12) << numPoints
-                << std::setw(11) << durationStandard.count()
-                << std::setw(18) << durationStratified.count()
-                << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard
-                << std::setw(20) << resultStratified << "\n";
+                  << std::setw(12) << "N/A"                     // No grid for the standard method
+                  << std::setw(18) << durationStandard.count()
+                  << std::setw(18) << "-"                       // No time for the layered method
+                  << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard
+                  << std::setw(20) << "-" << "\n";
+
+        // Stratified Method
+        for (int32_t strataPerDim : strataPerDimValues) {
+            auto startStrat = std::chrono::high_resolution_clock::now();
+            double resultStratified = mcIntegrator.integrateStratified(f, numPoints, numThreads, strataPerDim);
+            auto endStrat = std::chrono::high_resolution_clock::now();
+            auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(endStrat - startStrat);
+
+            // Printing the row for the layered method
+            std::cout << std::setw(12) << numPoints
+                      << std::setw(12) << strataPerDim
+                      << std::setw(18) << "-"             // No time for the standard method
+                      << std::setw(18) << durationStratified.count()
+                      << std::setw(18) << "-"
+                      << std::setw(20) << std::fixed << std::setprecision(6) << resultStratified << "\n";
+        }
     }
 }
 
