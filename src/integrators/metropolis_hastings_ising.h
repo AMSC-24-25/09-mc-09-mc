@@ -8,14 +8,14 @@
 #include <vector>
 #include <future>
 
-// Metropolis-Hastings sampler class with parallel chains
+// Metropolis-Hastings for ising model
 class MetropolisHastingsIsing : public AbstractIntegrator {
 public:
-    // Constructor to initialize the sampler
+    // Constructor
     explicit MetropolisHastingsIsing();
 
     // Perform a single Metropolis-Hastings chain for the Ising model
-    // Returns a pair of {E[h(x)], #accepted points}
+    // Returns a pair of {energy average, #accepted points}
     std::pair<double, int32_t> integrateSingleChainIsing(
         const std::function<double(const std::vector<std::vector<int>> &)> &f,
         size_t numPoints,
@@ -24,8 +24,8 @@ public:
         std::mt19937 &engine
     );
 
-    // Perform parallel computation of E[h(x)] for the Ising model using multiple chains
-    // Returns a pair of {E[h(x)], acceptance rate}
+    // Perform parallel computation of energy average for the Ising model using multiple chains
+    // Returns a pair of {energy average, acceptance rate}
     std::pair<double, double> integrateParallelIsing(
         const std::function<double(const std::vector<std::vector<int>> &)> &f,
         size_t numPoints,

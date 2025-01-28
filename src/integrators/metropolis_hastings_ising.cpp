@@ -1,5 +1,6 @@
 #include "metropolis_hastings_ising.h"
 
+// Initialize integrator with a dummy domain (lattice is used as domain instead)
 MetropolisHastingsIsing::MetropolisHastingsIsing()
     : AbstractIntegrator(DummyDomain()) {}
 
@@ -47,6 +48,7 @@ std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
         int32_t row, col;
         flipSpin(candidateLattice, row, col, engine);
 
+        // acceptance ratio uses energy difference as probability of change
         double deltaE = calculateEnergyDifference(lattice, row, col);
 
         double acceptanceRatio = exp(-deltaE / temperature);
@@ -63,7 +65,7 @@ std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
     return {sumF / samples, accepted};
 }
 
-// Perform parallel computation of E[h(x)] for the Ising model using multiple chains
+// Perform parallel computation of energy average for the Ising model using multiple chains
 std::pair<double, double> MetropolisHastingsIsing::integrateParallelIsing(
     const std::function<double(const std::vector<std::vector<int>> &)> &f,
     size_t numPoints,
@@ -71,6 +73,7 @@ std::pair<double, double> MetropolisHastingsIsing::integrateParallelIsing(
     double temperature,
     size_t numChains
 ) {
+    // initialize engines from abstractIntegrator
     initializeEngines(numChains);
     size_t pointsPerChain = numPoints / numChains;
 
