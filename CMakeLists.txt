@@ -3,6 +3,12 @@ project(09-mc LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+file(GLOB_RECURSE SRC_FILES
+    "${CMAKE_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_SOURCE_DIR}/src/*/.h"
+)
+add_executable(09-mc ${SRC_FILES})
+
 include(FetchContent)
 
 # Download Eigen
@@ -17,40 +23,25 @@ FetchContent_MakeAvailable(eigen)
 FetchContent_Declare(
     qhull
     GIT_REPOSITORY https://github.com/qhull/qhull.git
-    GIT_TAG master  # Usa 'master' o un tag di versione valido
+    GIT_TAG master
 )
-
-set(QHULL_BUILD_SHARED OFF CACHE BOOL "" FORCE)
-set(QHULL_BUILD_STATIC ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(qhull)
 
-file(GLOB_RECURSE SRC_FILES
-    "${CMAKE_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/*/.cpp"
-    "${CMAKE_SOURCE_DIR}/src/*/.h"
-)
-
-add_executable(09-mc ${SRC_FILES})
-add_dependencies(09-mc qhull)
-
-# Link package pthread
+# Find Threads
 find_package(Threads REQUIRED)
-target_link_libraries(09-mc PRIVATE Threads::Threads)
+
+# Link libraries
+target_link_libraries(09-mc PRIVATE
+    Threads::Threads
+    Eigen3::Eigen
+    qhullstatic_r
+    qhullcpp
+)
 
 # Include directories
 target_include_directories(09-mc PRIVATE
-    "${CMAKE_SOURCE_DIR}/src"  # Include le directory del tuo progetto
-    ${Eigen3_INCLUDE_DIRS}
-    ${qhull_SOURCE_DIR}/src/libqhull_r
-    ${qhull_SOURCE_DIR}/src/libqhullcpp
+    "${CMAKE_SOURCE_DIR}/src"
     ${qhull_SOURCE_DIR}/src
-)
-
-# Link libs
-target_link_libraries(09-mc PRIVATE Eigen3::Eigen
-   	qhullstatic_r  # libreria C “robusta” di Qhull
-    	qhullcpp       # libreria C++ di Qhull
-	
 )
 
 # Optimized compiler options
