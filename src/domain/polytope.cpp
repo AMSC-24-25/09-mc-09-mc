@@ -7,8 +7,6 @@
 #include <Eigen/Dense>
 #include <iostream>
 #include <stdexcept>
-#include <cdd/setoper.h>
-#include <cdd/cdd.h>
 #include <numeric>
 
 // Constructor
