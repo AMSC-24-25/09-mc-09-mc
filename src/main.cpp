@@ -12,6 +12,9 @@
 #include <thread>
 #include <cmath>
 
+
+
+
 const std::vector<size_t> numPointsValues = {10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
 unsigned int numThreads;
 
@@ -146,6 +149,72 @@ void triangleIntegration() {
     }
 }
 
+void fiveDimIntegration() {
+    // Define f in 5 dim
+    //    f(x0,x1,x2,x3,x4) = x0^2 + x1^2 + x2^2 + x3^2 + x4^2
+    auto f = [](const std::vector<double> &x) {
+        return x[0]*x[0] + x[1]*x[1] + x[2]*x[2] + x[3]*x[3] + x[4]*x[4];
+    };
+
+    // Hyperspher r=1
+    Hypersphere sphere(5, 1.0);
+
+    MonteCarloIntegrator mcIntegrator(sphere);
+
+    // Print
+    std::cout << "\nIntegrating f(x,y,z,u,w) = x^2 + y^2 + z^2 + u^2 + w^2 "
+              << "over the 5D unit hypersphere (radius = 1):\n";
+    std::cout << "Expected result (8π^2/21) ~ 3.75985 " << "\n\n";
+    
+
+    // Print header
+    std::cout << std::setw(12) << "NumPoints"
+              << std::setw(12) << "GridDim"
+              << std::setw(18) << "Time Std (ms)"
+              << std::setw(18) << "Time Strat (ms)"
+              << std::setw(18) << "Std Result"
+              << std::setw(20) << "Strat Result" << "\n";
+    std::cout << std::string(95, '-') << "\n";
+
+    // Choose stratadim (strataPerDim),
+    std::vector<int32_t> strataPerDimValues = {5, 10, 20, 50};
+
+    
+    for (size_t numPoints : numPointsValues) {
+        // ------ Standard method ------
+        auto startStd = std::chrono::high_resolution_clock::now();
+        double resultStandard = mcIntegrator.integrate(f, numPoints, numThreads);
+        auto endStd = std::chrono::high_resolution_clock::now();
+        auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
+
+        // Print results
+        std::cout << std::setw(12) << numPoints
+                  << std::setw(12) << "N/A"  // Nessuna griglia per il metodo standard
+                  << std::setw(18) << durationStandard.count()
+                  << std::setw(18) << "-"  // Nessun tempo per la parte stratificata
+                  << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard
+                  << std::setw(20) << "-" << "\n";
+
+        // ------ Stratified ------
+        for (int32_t strataPerDim : strataPerDimValues) {
+            auto startStrat = std::chrono::high_resolution_clock::now();
+            double resultStratified = mcIntegrator.integrateStratified(f, numPoints, numThreads, strataPerDim);
+            auto endStrat = std::chrono::high_resolution_clock::now();
+            auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(endStrat - startStrat);
+
+            // Print strat results
+            std::cout << std::setw(12) << numPoints
+                      << std::setw(12) << strataPerDim
+                      << std::setw(18) << "-"  // Nessun tempo per lo standard
+                      << std::setw(18) << durationStratified.count()
+                      << std::setw(18) << "-" 
+                      << std::setw(20) << std::fixed << std::setprecision(6) << resultStratified
+                      << "\n";
+        }
+    }
+}
+
+
 void MHintegration() {
     // Suppose we have a standard 2D normal distribution
     auto p = [](const std::vector<double> &x) -> double {
@@ -206,7 +275,7 @@ int main() {
 
     circleIntegration();
     triangleIntegration();
+    fiveDimIntegration();
     MHintegration();
-
     return 0;
 }
