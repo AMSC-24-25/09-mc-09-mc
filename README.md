@@ -115,9 +115,12 @@ To parallelize: run multiple independent chains and average their results.
 - **`domain/`**: Contains classes representing geometric domains (`Hypersphere`, `Polygon2D`, `Polytope`) and the
   `IntegrationDomain` interface they all implement.
 - **`integrators/`**: Contains an abstract `AbstractIntegrator` which handles parallel random number generation and also
-   the integration strategies: `MonteCarloIntegrator` for standard and stratified sampling, and
-  `MetropolisHastingsIntegrator` for MH-sampling.
-- **`main.cpp`**: Demonstrates integrating different functions over different domains.
+   the integration strategies: `MonteCarloIntegrator` for standard and stratified sampling,
+  `MetropolisHastingsIntegrator` for MH-sampling and `MetropolisHastingsIsing` for the ising model implementation of MH.
+- **`main.cpp`**.
+- **`benchmarks`**: Demonstrates integrating different functions over different domains.
+- **`ising_model`**: Example implementation of the 2d ising model.
+- **`room_assignment`**: Example implementation of the room assignment problem.
 
 ## Dependencies
 
@@ -145,7 +148,7 @@ To parallelize: run multiple independent chains and average their results.
     ./09-mc
     ```
 
-## The program shows:
+## Integrators and domains testing
 
 - Integrating `f(x,y) = x² + y²` over a unit circle, displaying results from standard and stratified sampling (using different grid sizes)
   for various numbers of points.
@@ -203,12 +206,12 @@ $$C_v = \frac{\partial \langle E \rangle}{\partial T}$$
 
 This expression highlights how fluctuations become significant near critical points. Analyzing $𝐶_𝑣$ allows us to investigate phase transitions, such as the shift from ordered (magnetized) to disordered (non-magnetized) states as temperature varies.
 
-### Specifics of the implementation
+### Example implementation
 
-The following values used in the example execution of the algorithm can be changed as needed based on the problem we want to address and what we want to investigate.
+The following values used in the example execution of the algorithm can be changed as needed based on the problem addressed and what we want to investigate.
 
-- T is set to 4.5 degrees but it can be updated based on what is it we want to investigate (Consider 2.5-4.5 range to investigate the behavior of the 2d system near the critical point).
-- Number of points is set to a sufficiently large value but can be changed based on the size of the lattice and other specs.
+- T is set to 4.5 degrees. Consider exploring the 2.5-4.5 range to observe the behavior of the 2d system near the critical point.
+- The number of points is set to a sufficiently large value but can be changed based on the size of the lattice and other specs.
 - Lattice size is currently set to 20x20.
 - Increment used to calculate the derivative is set to 0.1.
 
