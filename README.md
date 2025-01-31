@@ -167,7 +167,7 @@ To parallelize: run multiple independent chains and average their results.
 <img src="img/circle.png" width="500">
 <img src="img/triangle.png" width="500">
 
-<img src="img/Funciton5D-convergence.png" width="500">
+<img src="img/Funciton5D-convergence2.png" width="500">
 
 
 ## Performance
