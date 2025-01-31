@@ -155,21 +155,21 @@ To parallelize: run multiple independent chains and average their results.
 - Integrating `f(x,y,z,u,w) = x² + y² + z² + u² + w² `over the 5d unit hyperphere (radius =1)
 - Integrating `f(x) = ` $\sum_{i=0}^{11} x_i^2$ over the 12d unit hyperphere (radius =1)
 
-<img src="img/example1.jpg" width="600">
-<img src="img/example2.jpg" width="600">
-<img src="img/example3.jpg" width="600">
-<img src="img/example4.jpg" width="600">
+![example1](img/example1.jpg)
+![example2](img/example2.jpg)
+![example3](img/example3.jpg)
+![example4](img/example4.jpg)
 
 
 - These graphs show the convergence of the Monte Carlo integral with different stratification strategies.
   It is observed that stratification accelerates convergence, but if the subdivision is excessive, the results worsen due to the scarcity of points per layer
 
 
-<img src="img/circle.png" width="500">
-<img src="img/triangle.png" width="500">
+![circle](img/circle.png)
+![triangle](img/triangle.png)
 
-<img src="img/Funciton5D-convergence2.png" width="500">
-<img src="img/hypersphere_12d_convergence.png" width="500">
+![Funciton5D-convergence2](img/Funciton5D-convergence2.png)
+![hypersphere_12d_convergence](img/hypersphere_12d_convergence.png)
 
 
 ## Performance
@@ -179,8 +179,8 @@ By setting the number of threads to 1, we establish a baseline for sequential ex
 This baseline enables us to calculate the speedup achieved in different scenarios (standard and stratified) when multiple threads are utilized. 
 The speedup metric helps to quantify the performance gain provided by parallel processing.
 
-<img src="img/Speedup using the Standard Method.png" width="500">
-<img src ="img/Speedup using different grid size.png" width="500">
+![Speedup using the Standard Method.](img/Speedup using the Standard Method.png)
+![Speedup using different grid size](img/Speedup using different grid size.png)
 
 
 ## Ising Model application
