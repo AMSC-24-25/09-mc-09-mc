@@ -186,7 +186,7 @@ The speedup metric helps to quantify the performance gain provided by parallel p
 ![Speedup using different grid size](img/Speedup%20using%20different%20grid%20size.png)
 
 
-## Ising Model application
+## 2D Ising Model
 
 The 2D Ising model is a tool used to simulate the behavior of magnetic materials and phase transitions. It operates on a square lattice grid, where each intersection point—or lattice site—carries a spin that can be in one of two states: up (+1) or down (−1).
 
