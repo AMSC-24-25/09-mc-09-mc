@@ -145,7 +145,7 @@ To parallelize: run multiple independent chains and average their results.
     ./09-mc
     ```
 
-The program shows:
+## The program shows:
 
 - Integrating `f(x,y) = x² + y²` over a unit circle, displaying results from standard and stratified sampling (using different grid sizes)
   for various numbers of points.
@@ -159,11 +159,29 @@ The program shows:
 <img src="img/example3.jpg" width="600">
 <img src="img/example4.jpg" width="600">
 
+
 - These graphs show the convergence of the Monte Carlo integral with different stratification strategies.
   It is observed that stratification accelerates convergence, but if the subdivision is excessive, the results worsen due to the scarcity of points per layer
 
+
 <img src="img/circle.png" width="500">
 <img src="img/triangle.png" width="500">
+
+<img src="img/Funciton5D-convergence.png" width="500">
+
+
+## Performance
+
+By setting the number of threads to 1, we establish a baseline for sequential execution.
+
+This baseline enables us to calculate the speedup achieved in different scenarios (standard and stratified) when multiple threads are utilized. 
+The speedup metric helps to quantify the performance gain provided by parallel processing.
+
+<img src="img/Speedup using the Standard Method.png" width="500">
+<img src ="img/Speedup using different grid size.png" width="500">
+
+
+
 
 ## Ising Model application
 
