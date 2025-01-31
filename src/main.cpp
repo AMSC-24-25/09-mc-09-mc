@@ -10,7 +10,7 @@ void showMenu() {
     std::cout << "2. Specific heat per particle with Ising model\n";
     std::cout << "3. Room assignment problem solver using simulated annealing\n";
     std::cout << "4. Exit\n";
-    std::cout << "\nYour choice (1,2,3): ";
+    std::cout << "\nYour choice (1,2,3,4): ";
 }
 
 int main() {
