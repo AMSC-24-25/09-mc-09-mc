@@ -3,6 +3,7 @@
 #include "domain/hypersphere.h"
 #include "domain/polygon2d.h"
 
+#include <fstream>
 #include <iostream>
 #include <chrono>
 #include <iomanip>
@@ -18,6 +19,44 @@
 const std::vector<size_t> numPointsValues = {10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
 unsigned int numThreads;
 
+
+// Struct for the txt file
+struct MCResultRow {
+    size_t numPoints;         
+    std::string gridDim;      
+    std::string timeStd;      
+    std::string timeStrat;    
+    std::string stdResult;    
+    std::string stratResult;  
+};
+
+//Function to export results in txt
+void exportIntegrationResults(const std::string &fileName,
+                             const std::vector<MCResultRow> &rows)
+{
+    std::ofstream file(fileName);
+    if (!file.is_open()) {
+        std::cerr << "Impossibile aprire il file " << fileName << " per scrittura.\n";
+        return;
+    }
+
+    // File Header here
+    file << "NumPoints\tGridDim\tTimeStd(ms)\tTimeStrat(ms)\tStdResult\tStratResult\n";
+
+    // write the rows
+    for (const auto &row : rows) {
+        file << row.numPoints    << "\t"
+             << row.gridDim      << "\t"
+             << row.timeStd      << "\t"
+             << row.timeStrat    << "\t"
+             << row.stdResult    << "\t"
+             << row.stratResult  << "\n";
+    }
+
+    file.close();
+}
+
+
 void circleIntegration() {
     //Function to integrate on the circle: x^2 + y^2
     auto f = [](const std::vector<double> &x) {
@@ -26,6 +65,8 @@ void circleIntegration() {
 
     // Circle with radius 1 centered at (0, 0)
     Hypersphere sphere(2, 1.0);
+
+    std::vector<MCResultRow> circleData; //Vector to store rows
 
     // Monte Carlo integrator initialization
     MonteCarloIntegrator mcIntegrator(sphere);
@@ -52,6 +93,23 @@ void circleIntegration() {
         auto endStd = std::chrono::high_resolution_clock::now();
         auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
 
+        //Saving results in the struct
+         {
+        MCResultRow row;
+        row.numPoints    = numPoints;
+        row.gridDim      = "N/A";
+        
+        long long timeStdMs = durationStandard.count();
+        row.timeStd   = std::to_string(timeStdMs);
+        row.timeStrat    = "-";   
+        // Convert results to string
+        std::ostringstream ossRes;
+        ossRes << std::fixed << std::setprecision(6) << resultStandard;
+        row.stdResult    = ossRes.str();
+        row.stratResult  = "-";
+        
+        circleData.push_back(row);
+    }
         // Printing the standard method line
         std::cout << std::setw(12) << numPoints
                   << std::setw(12) << "N/A"  //No grid for the standard method
@@ -67,6 +125,23 @@ void circleIntegration() {
             auto endStrat = std::chrono::high_resolution_clock::now();
             auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(endStrat - startStrat);
 
+        //Saving results in the struct
+         {
+            MCResultRow row;
+            row.numPoints   = numPoints;
+            row.gridDim     = std::to_string(strataPerDim);
+            row.timeStd     = "-";
+            long long timeStratMs = durationStratified.count();
+            row.timeStrat = std::to_string(timeStratMs);
+            row.stdResult   = "-";
+            
+            std::ostringstream ossRes;
+            ossRes << std::fixed << std::setprecision(6) << resultStratified;
+            row.stratResult = ossRes.str();
+
+            circleData.push_back(row);
+        }
+
             // Printing of the layered method line
             std::cout << std::setw(12) << numPoints
                       << std::setw(12) << strataPerDim
@@ -76,7 +151,10 @@ void circleIntegration() {
                       << std::setw(20) << resultStratified << "\n";
         }
     }
+    std::cout << "\nSaved txt file: resultsCircle.txt\n";
+    exportIntegrationResults("resultsCircle.txt", circleData);
 }
+
 
 void triangleIntegration() {
     // Integratiion over the (1,1,1) triangle domain with f(x,y)=1
@@ -89,6 +167,8 @@ void triangleIntegration() {
         {0.5, std::sqrt(3.0) / 2.0}
     };
     Polygon2D triangle(triangleVertices);
+
+    std::vector<MCResultRow> triangleData; //Vector to store rows
 
     // Monte Carlo integrator for the triangle
     MonteCarloIntegrator mcIntegrator(triangle);
@@ -123,6 +203,25 @@ void triangleIntegration() {
         auto endStd = std::chrono::high_resolution_clock::now();
         auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
 
+
+        //Saving results in the struct
+         {
+        MCResultRow row;
+        row.numPoints    = numPoints;
+        row.gridDim      = "N/A";
+        
+        long long timeStdMs = durationStandard.count();
+        row.timeStd   = std::to_string(timeStdMs);
+        row.timeStrat    = "-";   
+        // Convert results to string
+        std::ostringstream ossRes;
+        ossRes << std::fixed << std::setprecision(6) << resultStandard;
+        row.stdResult    = ossRes.str();
+        row.stratResult  = "-";
+        
+        triangleData.push_back(row);
+    }
+
         // Printing the line for the standard method
         std::cout << std::setw(12) << numPoints
                   << std::setw(12) << "N/A"                     // No grid for the standard method
@@ -138,6 +237,24 @@ void triangleIntegration() {
             auto endStrat = std::chrono::high_resolution_clock::now();
             auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(endStrat - startStrat);
 
+
+            //Save results in the struct
+            {
+            MCResultRow row;
+            row.numPoints   = numPoints;
+            row.gridDim     = std::to_string(strataPerDim);
+            row.timeStd     = "-";
+            long long timeStratMs = durationStratified.count();
+            row.timeStrat = std::to_string(timeStratMs);
+            row.stdResult   = "-";
+            
+            std::ostringstream ossRes;
+            ossRes << std::fixed << std::setprecision(6) << resultStratified;
+            row.stratResult = ossRes.str();
+
+            triangleData.push_back(row);
+        }
+
             // Printing the row for the layered method
             std::cout << std::setw(12) << numPoints
                       << std::setw(12) << strataPerDim
@@ -147,9 +264,12 @@ void triangleIntegration() {
                       << std::setw(20) << std::fixed << std::setprecision(6) << resultStratified << "\n";
         }
     }
+    std::cout << "\nSaved txt file: resultsTriangle.txt\n";
+    exportIntegrationResults("resultsTriangle.txt", triangleData);
 }
 
 void fiveDimIntegration() {
+
     // Define f in 5 dim
     //    f(x0,x1,x2,x3,x4) = x0^2 + x1^2 + x2^2 + x3^2 + x4^2
     auto f = [](const std::vector<double> &x) {
@@ -158,6 +278,8 @@ void fiveDimIntegration() {
 
     // Hyperspher r=1
     Hypersphere sphere(5, 1.0);
+
+    std::vector<MCResultRow> Function5dData; //Vector to store rows
 
     MonteCarloIntegrator mcIntegrator(sphere);
 
@@ -187,14 +309,33 @@ void fiveDimIntegration() {
         auto endStd = std::chrono::high_resolution_clock::now();
         auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
 
+
+        //Saving results in the struct
+         {
+        MCResultRow row;
+        row.numPoints    = numPoints;
+        row.gridDim      = "N/A";
+        
+        long long timeStdMs = durationStandard.count();
+        row.timeStd   = std::to_string(timeStdMs);
+        row.timeStrat    = "-";   
+        // Convert results to string
+        std::ostringstream ossRes;
+        ossRes << std::fixed << std::setprecision(6) << resultStandard;
+        row.stdResult    = ossRes.str();
+        row.stratResult  = "-";
+        
+        Function5dData.push_back(row);
+    }
+
         // Print results
         std::cout << std::setw(12) << numPoints
-                  << std::setw(12) << "N/A"  // Nessuna griglia per il metodo standard
+                  << std::setw(12) << "N/A"  // No grid for std
                   << std::setw(18) << durationStandard.count()
-                  << std::setw(18) << "-"  // Nessun tempo per la parte stratificata
+                  << std::setw(18) << "-"  // No time for strat
                   << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard
                   << std::setw(20) << "-" << "\n";
-
+       
         // ------ Stratified ------
         for (int32_t strataPerDim : strataPerDimValues) {
             auto startStrat = std::chrono::high_resolution_clock::now();
@@ -202,16 +343,41 @@ void fiveDimIntegration() {
             auto endStrat = std::chrono::high_resolution_clock::now();
             auto durationStratified = std::chrono::duration_cast<std::chrono::milliseconds>(endStrat - startStrat);
 
+        //Saving results in the struct
+        {
+            MCResultRow row;
+            row.numPoints   = numPoints;
+            row.gridDim     = std::to_string(strataPerDim);
+            row.timeStd     = "-";
+            long long timeStratMs = durationStratified.count();
+            row.timeStrat = std::to_string(timeStratMs);
+            row.stdResult   = "-";
+            
+            std::ostringstream ossRes;
+            ossRes << std::fixed << std::setprecision(6) << resultStratified;
+            row.stratResult = ossRes.str();
+
+            Function5dData.push_back(row);
+        }
+
+
             // Print strat results
             std::cout << std::setw(12) << numPoints
                       << std::setw(12) << strataPerDim
-                      << std::setw(18) << "-"  // Nessun tempo per lo standard
+                      << std::setw(18) << "-"  // No std time
                       << std::setw(18) << durationStratified.count()
                       << std::setw(18) << "-" 
                       << std::setw(20) << std::fixed << std::setprecision(6) << resultStratified
                       << "\n";
+
+                     
         }
     }
+
+    
+    exportIntegrationResults("resultsFunction5D.txt", Function5dData);
+    std::cout << "\nSaved txt file: resultsFunction5D.txt\n";
+
 }
 
 
