@@ -108,10 +108,10 @@ double Polytopes::getBoundedVolume() const {
 }
 
 
-// Function to decompose a 15D polytope into simplexes
+// Function to decompose a nD polytope into simplexes
 std::vector<std::vector<std::vector<double>>> Polytopes::decomposePolytope (
     const std::vector<std::vector<double>>& vertices) const {
-    size_t dimensions = vertices[0].size(); // Dimensionality (15 for 15D)
+    size_t dimensions = vertices[0].size(); // Dimensionality 
     size_t numPoints = vertices.size();
 
     // Flatten the vertices for Qhull
@@ -146,7 +146,7 @@ std::vector<std::vector<std::vector<double>>> Polytopes::decomposePolytope (
             simplex.push_back(vertices[vertex.point().id()]);
         }
 
-        // Add the centroid to form a 15D simplex
+        // Add the centroid to form a nD simplex
         simplex.push_back(centroid);
 
         // Validate simplex size
