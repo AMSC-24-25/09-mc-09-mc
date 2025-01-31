@@ -192,11 +192,11 @@ The 2D Ising model is a tool used to simulate the behavior of magnetic materials
 
 Estimating quantities like the specific heat per particle involves integrating over all possible configurations of the system. However, it's difficult to sample from the probability distribution over the possible states of the system. To overcome this, we employ a modified Metropolis-Hastings algorithm, with the following key adaptations:
 
-- Square Lattice Domain: the simulation is conducted on a two-dimensional square lattice, reflecting the geometric structure of the material being modeled.
+- **Square Lattice Domain**: the simulation is conducted on a two-dimensional square lattice, reflecting the geometric structure of the material being modeled.
 
-- Local Spin Updates: at each step, a lattice site is randomly selected, and its spin is flipped to propose a new state. This local update mechanism allows the system to explore the configuration space efficiently.
+- **Local Spin Updates**: at each step, a lattice site is randomly selected, and its spin is flipped to propose a new state. This local update mechanism allows the system to explore the configuration space efficiently.
 
-- Energy-Based Acceptance Criterion: determined by a target distribution derived from the system's energy function. Specifically, $A = \min\left(1, e^{-\Delta E / k_B T}\right)$, where Δ𝐸 is the change in energy resulting from the spin flip, $𝑘_𝐵$ is Boltzmann's constant, and 𝑇 is the temperature.
+- **Energy-Based Acceptance Criterion**: determined by a target distribution derived from the system's energy function. Specifically, $A = \min\left(1, e^{-\Delta E / k_B T}\right)$, where Δ𝐸 is the change in energy resulting from the spin flip, $𝑘_𝐵$ is Boltzmann's constant, and 𝑇 is the temperature.
 
 The expected value of the energy, $\langle E \rangle$, which is an integral over all possible states of the system, is effectively approximated by averaging the energies of these sampled configurations.
 
