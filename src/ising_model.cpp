@@ -26,7 +26,7 @@ void isingModel() {
         // fallback
         numChains = 16;
     }
-    std::cout << "Using " << numChains << " threads and " << numPoints << "points.\n";
+    std::cout << "Using " << numChains << " threads and " << numPoints << " points.\n";
 
     // lattice initialization
     std::mt19937 engine;

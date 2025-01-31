@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 file(GLOB_RECURSE SRC_FILES
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/*/.h"
+    "${CMAKE_SOURCE_DIR}/src/*.h"
 )
 add_executable(09-mc ${SRC_FILES})
 
