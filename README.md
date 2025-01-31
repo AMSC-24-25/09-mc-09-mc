@@ -108,7 +108,7 @@ To parallelize: run multiple independent chains and average their results.
 - **Multiple Integration Domains**:
     - **Hypersphere**: A hypersphere of arbitrary dimension and radius, bounded by a hypercube.
     - **Polygon2D**: A polygon in 2D, defined by a set of vertices.
-    - **Polytope** (V-form): A polytope defined as the convex hull of a finite set of vertices  V = \{ v_1, v_2, …, v_m \}  in \mathbb{R}^n. This representation describes the polytope as the smallest convex set containing all given points. The decomposition process involves partitioning the polytope into n-simplexes, each defined by a subset of  n+1  affinely independent vertices.
+    - **Polytope** (V-form): A polytope defined as the convex hull of a finite set of vertices  $V = \{ v_1, v_2, …, v_m \}$  in $\mathbb{R}^n$. This representation describes the polytope as the smallest convex set containing all given points. The decomposition process involves partitioning the polytope into n-simplexes, each defined by a subset of  n+1  affinely independent vertices.
 
 ## Directory Structure
 
