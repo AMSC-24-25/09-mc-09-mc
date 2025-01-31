@@ -15,7 +15,7 @@ void MetropolisHastingsIsing::flipSpin(std::vector<std::vector<int>> &lattice, i
     lattice[row][col] = -lattice[row][col];
 }
 
-// energy difference for acceptance ratio (to avoid running energy function twice)
+// energy difference for acceptance ratio (to avoid computing the energy function twice)
 double MetropolisHastingsIsing::calculateEnergyDifference(const std::vector<std::vector<int>> &lattice, int32_t row, int32_t col) {
     size_t rows = lattice.size();
     size_t cols = lattice[0].size();
@@ -49,7 +49,7 @@ std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
         int32_t row, col;
         flipSpin(candidateLattice, row, col, engine);
 
-        // acceptance ratio uses energy difference as probability of change
+        // acceptance ratio uses energy difference for probability of changing state
         double deltaE = calculateEnergyDifference(lattice, row, col);
         double acceptanceRatio = exp(-deltaE / temperature);
 
@@ -73,7 +73,7 @@ std::pair<double, double> MetropolisHastingsIsing::integrateParallelIsing(
     double temperature,
     size_t numChains
 ) {
-    // initialize engines through abstractIntegrator
+    // initialize random engines through abstractIntegrator
     initializeEngines(numChains);
     size_t pointsPerChain = numPoints / numChains;
 
