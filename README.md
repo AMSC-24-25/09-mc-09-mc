@@ -175,7 +175,7 @@ To parallelize: run multiple independent chains and average their results.
 ![hypersphere_12d_convergence](img/hypersphere_12d_convergence.png)
 
 
-## Performance
+## Performances
 
 By setting the number of threads to 1, we establish a baseline for sequential execution.
 
