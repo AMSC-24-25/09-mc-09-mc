@@ -179,8 +179,8 @@ By setting the number of threads to 1, we establish a baseline for sequential ex
 This baseline enables us to calculate the speedup achieved in different scenarios (standard and stratified) when multiple threads are utilized. 
 The speedup metric helps to quantify the performance gain provided by parallel processing.
 
-![Speedup using the Standard Method.](img/Speedup using the Standard Method.png)
-![Speedup using different grid size](img/Speedup using different grid size.png)
+![Speedup using the Standard Method.](img/Speedup%20using%20the%20Standard%20Method.png)
+![Speedup using different grid size](img/Speedup%20using%20different%20grid%20size.png)
 
 
 ## Ising Model application
