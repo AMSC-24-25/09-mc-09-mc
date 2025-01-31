@@ -279,6 +279,24 @@ metallurgy. Here's how it works:
     - Maximum 1000 iterations without improvement
     - Temperature drops below minimum
 
+### Example Usage
+
+```cpp
+// Create dislike matrix
+vector<vector<double>> dislikes = {
+    {0.0, 0.8, 0.4},
+    {0.8, 0.0, 0.3},
+    {0.4, 0.3, 0.0}
+};
+
+// Initialize solver
+RoomAssignment solver(6, dislikes);
+
+// Run optimization
+solver.solve();
+```
+
 ### Visualization 
 
-a
+![cost_over_time](img/cost_over_time.png)
+![temperature_vs_acceptance](img/temperature_vs_acceptance.png)
