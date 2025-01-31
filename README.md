@@ -147,16 +147,20 @@ To parallelize: run multiple independent chains and average their results.
 
 The program shows:
 
-- Integrating `f(x,y) = x² + y²` over a unit circle, displaying results from standard and stratified sampling 
+- Integrating `f(x,y) = x² + y²` over a unit circle, displaying results from standard and stratified sampling (using different grid sizes)
   for various numbers of points.
 - Integrating `f(x,y) = 1` over an equilateral triangle (using `Polygon2D`) to find its area 
   and print a similar comparison table.
 - Calculates $E[x^2]$ of a standard 2D normal distribution using Metropolis-Hastings method of random chains.
+- Integrating `f(x,y,z,u,w) = x² + y² + z² + u² + w² `over the 5d unit hyperphere (radius =1)
 
-![example](img/example.png)
+<img src="img/example1.jpg" width="600">
+<img src="img/example2.jpg" width="600">
+<img src="img/example3.jpg" width="600">
+<img src="img/example4.jpg" width="600">
 
-## Possible Improvements
+- These graphs show the convergence of the Monte Carlo integral with different stratification strategies.
+  It is observed that stratification accelerates convergence, but if the subdivision is excessive, the results worsen due to the scarcity of points per layer
 
-- **Physics application**: Show a real-life physics scenario where monte-carlo integration can be used.
-- **Advanced domains**: Add more complex domains or integrate with convex polytope libraries.
-- **Variance Reduction**: Enhance stratification or add Latin hypercube sampling for even better variance reduction.
+<img src="img/circle.png" width="500">
+<img src="img/triangle.png" width="500">
