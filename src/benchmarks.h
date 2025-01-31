@@ -33,6 +33,7 @@ void exportIntegrationResults(const std::string &fileName, const std::vector<MCR
 void circleIntegration();
 void triangleIntegration();
 void fiveDimIntegration();
+void twelveDimIntegration();
 void MHintegration();
 void benchmarks();
 

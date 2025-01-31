@@ -53,9 +53,9 @@ void circleIntegration() {
               << std::setw(18) << "Time Strat (ms)"
               << std::setw(18) << "Std Result"
               << std::setw(20) << "Strat Result" << "\n";
-    std::cout << std::string(95, '-') << "\n";
+    std::cout << std::string(98, '-') << "\n";
 
-    //Different sizes for the layered method                                        
+    //Different sizes for the layered method
     std::vector<int32_t> strataPerDimValues = {5, 10, 20, 50};
     //std::vector<int32_t> strataPerDimValues = {10, 100, 1000, 5000};        //trying something different
 
@@ -71,16 +71,16 @@ void circleIntegration() {
         MCResultRow row;
         row.numPoints    = numPoints;
         row.gridDim      = "N/A";
-        
+
         long long timeStdMs = durationStandard.count();
         row.timeStd   = std::to_string(timeStdMs);
-        row.timeStrat    = "-";   
+        row.timeStrat    = "-";
         // Convert results to string
         std::ostringstream ossRes;
         ossRes << std::fixed << std::setprecision(6) << resultStandard;
         row.stdResult    = ossRes.str();
         row.stratResult  = "-";
-        
+
         circleData.push_back(row);
     }
         // Printing the standard method line
@@ -107,7 +107,7 @@ void circleIntegration() {
             long long timeStratMs = durationStratified.count();
             row.timeStrat = std::to_string(timeStratMs);
             row.stdResult   = "-";
-            
+
             std::ostringstream ossRes;
             ossRes << std::fixed << std::setprecision(6) << resultStratified;
             row.stratResult = ossRes.str();
@@ -163,12 +163,12 @@ void triangleIntegration() {
               << std::setw(18) << "Time Strat (ms)"
               << std::setw(18) << "Std Result"
               << std::setw(20) << "Strat Result" << "\n";
-    std::cout << std::string(95, '-') << "\n";
+    std::cout << std::string(98, '-') << "\n";
 
     // Different sizes for the layered method
     std::vector<int32_t> strataPerDimValues = {5, 10, 20, 50};
     //std::vector<int32_t> strataPerDimValues = {10, 100, 1000, 5000};     //trying something different
- 
+
     for (size_t numPoints : numPointsValues) {
         // Standard method
         auto startStd = std::chrono::high_resolution_clock::now();
@@ -182,16 +182,16 @@ void triangleIntegration() {
         MCResultRow row;
         row.numPoints    = numPoints;
         row.gridDim      = "N/A";
-        
+
         long long timeStdMs = durationStandard.count();
         row.timeStd   = std::to_string(timeStdMs);
-        row.timeStrat    = "-";   
+        row.timeStrat    = "-";
         // Convert results to string
         std::ostringstream ossRes;
         ossRes << std::fixed << std::setprecision(6) << resultStandard;
         row.stdResult    = ossRes.str();
         row.stratResult  = "-";
-        
+
         triangleData.push_back(row);
     }
 
@@ -220,7 +220,7 @@ void triangleIntegration() {
             long long timeStratMs = durationStratified.count();
             row.timeStrat = std::to_string(timeStratMs);
             row.stdResult   = "-";
-            
+
             std::ostringstream ossRes;
             ossRes << std::fixed << std::setprecision(6) << resultStratified;
             row.stratResult = ossRes.str();
@@ -269,7 +269,7 @@ void fiveDimIntegration() {
               << std::setw(18) << "Time Strat (ms)"
               << std::setw(18) << "Std Result"
               << std::setw(20) << "Strat Result" << "\n";
-    std::cout << std::string(95, '-') << "\n";
+    std::cout << std::string(98, '-') << "\n";
 
     // Choose stratadim (strataPerDim),
     std::vector<int32_t> strataPerDimValues = {5, 10, 20, 50};
@@ -353,6 +353,76 @@ void fiveDimIntegration() {
 
 }
 
+void twelveDimIntegration() {
+    constexpr int dimensions = 12;
+
+    // Define f in 12 dim
+    //    f(x) = sum_{i=0}^11 x_i^2
+    auto f = [](const std::vector<double> &x) {
+        double res = 0;
+        for (size_t i = 0; i < dimensions; i++) {
+            res += x[i] * x[i];
+        }
+        return res;
+    };
+
+    // Hypersphere r=1
+    Hypersphere sphere(dimensions, 1.0);
+
+    std::vector<MCResultRow> Function12dData; // Vector to store rows
+
+    MonteCarloIntegrator mcIntegrator(sphere);
+
+    // Print
+    std::cout << "\nIntegrating f(x) = sum_{i=0}^11 x_i^2 "
+              << "over the area inside the 12D unit hypersphere (radius = 1):\n";
+    std::cout << "Expected result (π^6/840) ~ 1.14451 " << "\n\n";
+
+
+    // Print header
+    std::cout << std::setw(12) << "NumPoints"
+              << std::setw(12) << "GridDim"
+              << std::setw(18) << "Time Std (ms)"
+              << std::setw(18) << "Std Result" << "\n";
+    std::cout << std::string(60, '-') << "\n";
+
+    for (size_t numPoints : numPointsValues) {
+        // ------ Standard method ------
+        auto startStd = std::chrono::high_resolution_clock::now();
+        double resultStandard = mcIntegrator.integrate(f, numPoints, numThreads);
+        auto endStd = std::chrono::high_resolution_clock::now();
+        auto durationStandard = std::chrono::duration_cast<std::chrono::milliseconds>(endStd - startStd);
+
+
+        //Saving results in the struct
+        {
+            MCResultRow row;
+            row.numPoints = numPoints;
+            row.gridDim = "N/A";
+
+            long long timeStdMs = durationStandard.count();
+            row.timeStd = std::to_string(timeStdMs);
+            row.timeStrat = "-";
+            // Convert results to string
+            std::ostringstream ossRes;
+            ossRes << std::fixed << std::setprecision(6) << resultStandard;
+            row.stdResult = ossRes.str();
+            row.stratResult = "-";
+
+            Function12dData.push_back(row);
+        }
+
+        // Print results
+        std::cout << std::setw(12) << numPoints
+                  << std::setw(12) << "N/A"  // No grid for std
+                  << std::setw(18) << durationStandard.count()
+                  << std::setw(18) << std::fixed << std::setprecision(6) << resultStandard << "\n";
+    }
+
+    exportIntegrationResults("resultsFunction12D.txt", Function12dData);
+    std::cout << "\nSaved txt file: resultsFunction12D.txt\n";
+}
+
 
 void MHintegration() {
     // Suppose we have a standard 2D normal distribution
@@ -414,5 +484,6 @@ void benchmarks() {
     circleIntegration();
     triangleIntegration();
     fiveDimIntegration();
+    twelveDimIntegration();
     MHintegration();
 }

@@ -153,6 +153,7 @@ To parallelize: run multiple independent chains and average their results.
   and print a similar comparison table.
 - Calculates $E[x^2]$ of a standard 2D normal distribution using Metropolis-Hastings method of random chains.
 - Integrating `f(x,y,z,u,w) = x² + y² + z² + u² + w² `over the 5d unit hyperphere (radius =1)
+- Integrating `f(x) = ` $\sum_{i=0}^{11} x_i^2$ over the 12d unit hyperphere (radius =1)
 
 <img src="img/example1.jpg" width="600">
 <img src="img/example2.jpg" width="600">
@@ -168,6 +169,7 @@ To parallelize: run multiple independent chains and average their results.
 <img src="img/triangle.png" width="500">
 
 <img src="img/Funciton5D-convergence2.png" width="500">
+<img src="img/hypersphere_12d_convergence.png" width="500">
 
 
 ## Performance
