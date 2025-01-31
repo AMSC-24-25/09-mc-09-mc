@@ -202,3 +202,12 @@ The specific heat per particle, $𝐶_𝑣$, can be determined by examining how 
 $$C_v = \frac{\partial \langle E \rangle}{\partial T}$$
 
 This expression highlights how fluctuations become significant near critical points. Analyzing $𝐶_𝑣$ allows us to investigate phase transitions, such as the shift from ordered (magnetized) to disordered (non-magnetized) states as temperature varies.
+
+### Specifics of the implementation
+
+The following values used in the example execution of the algorithm can be changed as needed based on the problem we want to address and what we want to investigate.
+
+- T is set to 4.5 degrees but it can be updated based on what is it we want to investigate (Consider 2.5-4.5 range to investigate the behavior of the 2d system near the critical point).
+- Number of points is set to a sufficiently large value but can be changed based on the size of the lattice and other specs.
+- Lattice size is currently set to 20x20.
+- Increment used to calculate the derivative is set to 0.1.
