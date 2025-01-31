@@ -183,8 +183,6 @@ The speedup metric helps to quantify the performance gain provided by parallel p
 <img src ="img/Speedup using different grid size.png" width="500">
 
 
-
-
 ## Ising Model application
 
 The 2D Ising model is a tool used to simulate the behavior of magnetic materials and phase transitions. It operates on a square lattice grid, where each intersection point—or lattice site—carries a spin that can be in one of two states: up (+1) or down (−1).
@@ -213,3 +211,74 @@ The following values used in the example execution of the algorithm can be chang
 - Number of points is set to a sufficiently large value but can be changed based on the size of the lattice and other specs.
 - Lattice size is currently set to 20x20.
 - Increment used to calculate the derivative is set to 0.1.
+
+## Room Assignment using Simulated Annealing
+
+### The Problem
+
+The room assignment problem involves assigning n college freshmen to n/2 rooms while minimizing potential interpersonal
+conflicts. Each student has completed a survey indicating their compatibility with others, resulting in a "dislike
+matrix" where higher values indicate greater potential for conflict between pairs of students.
+
+### Method: Simulated Annealing
+
+Simulated annealing is a probabilistic optimization technique inspired by the physical process of annealing in
+metallurgy. Here's how it works:
+
+1. **Physical Analogy**:
+    - In metallurgy, annealing involves heating a metal to a high temperature and then cooling it slowly
+    - The high temperature allows atoms to move freely and escape local energy minima
+    - Slow cooling helps the material reach a low-energy crystalline state
+
+2. **Algorithm Components**:
+    - **State**: Current room assignments for all students
+    - **Energy**: Total sum of dislike values between roommates
+    - **Temperature**: Controls the probability of accepting worse solutions
+    - **Cooling Schedule**: How temperature decreases over time
+
+3. **Process**:
+    - Start with random room assignments
+    - Repeatedly:
+        - Select two students randomly
+        - Try swapping their room assignments
+        - Accept if it improves the situation (reduces total dislikes)
+        - Sometimes accept worse arrangements (based on temperature)
+        - Gradually reduce temperature
+
+### Implementation Details
+
+#### Key Classes and Functions
+
+1. **RoomAssignment Class**:
+   ```cpp
+   class RoomAssignment {
+       int n;  // number of students
+       vector<vector<double>> dislikes;  // dislike matrix
+       vector<int> assignments;  // room assignments
+   };
+   ```
+
+2. **Core Methods**:
+    - `calculateTotalDislikes()`: Computes current solution cost
+    - `selectRandomStudents()`: Chooses students for potential swap
+    - `solve()`: Implements the simulated annealing algorithm
+
+#### Important Implementation Features
+
+1. **Temperature Schedule**:
+    - Initial temperature $T_0 = 1.0$
+    - Geometric cooling: $T_{i+1} = 0.999 \cdot T_i$
+    - Minimum temperature = $0.01$
+
+2. **Acceptance Probability**:
+    - For a cost change $Δ$ at temperature $T$
+    - Accept if $Δ < 0$ (improvement)
+    - Accept with probability $e^{-Δ/T}$ otherwise
+
+3. **Termination Conditions**:
+    - Maximum 1000 iterations without improvement
+    - Temperature drops below minimum
+
+### Visualization 
+
+a
