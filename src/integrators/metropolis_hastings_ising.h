@@ -3,10 +3,12 @@
 
 #include "abstract_integrator.h"
 #include "../domain/dummy_domain.h"
+
 #include <random>
 #include <functional>
 #include <vector>
 #include <future>
+#include <cstdint>
 
 // Metropolis-Hastings for ising model
 class MetropolisHastingsIsing : public AbstractIntegrator {

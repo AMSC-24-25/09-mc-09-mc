@@ -1,11 +1,6 @@
-#include <iostream>
-#include <functional>
-#include <random>
-#include <vector>
-#include <cmath>
-#include "integrators/metropolis_hastings_ising.h"
+#include "ising_model.h"
 
-// Total energy of the system
+// compute total energy of the system
 double calculateTotalEnergy(const std::vector<std::vector<int>> &lattice) {
     double energy = 0.0;
     for (size_t i = 0; i < lattice.size(); ++i) {
@@ -19,19 +14,24 @@ double calculateTotalEnergy(const std::vector<std::vector<int>> &lattice) {
     return energy;
 }
 
-// Specific heat
-void performIsingSimulation() {
-    // Simulation parameters
-    size_t latticeSize = 10;     // Lattice
-    double T = 4.5;              // Temperature
-    double dT = 0.1;            // Increment to calculate derivative
-    size_t numPoints = 1000000;   // Points for MCMC
-    size_t numChains = 16;        // Number of parallel chains
+// execute ising model and compute specific heat per particle
+void isingModel() {
+    size_t latticeSize = 20;     // size of the square lattice
+    double T = 4.5;              // temperature of the system
+    double dT = 0.1;            // increment in T
+    size_t numPoints = 1000000;   // points for MCMC
+    
+    size_t numChains = std::thread::hardware_concurrency();
+    if (numChains == 0) {
+        // fallback
+        numChains = 16;
+    }
+    std::cout << "Using " << numChains << " threads and " << numPoints << "points.\n";
 
+    // lattice initialization
     std::mt19937 engine;
     engine.seed(std::random_device{}());
 
-    // Lattice initialization
     std::vector<std::vector<int>> lattice(latticeSize, std::vector<int>(latticeSize));
     std::uniform_int_distribution<> spinDist(-1, 1);
     for (auto &row : lattice) {
@@ -42,17 +42,19 @@ void performIsingSimulation() {
 
     MetropolisHastingsIsing mhIsing;
 
+    // anonymous function for improved flexibility and modularity in case we want to change the energy function
     auto energyFunction = [](const std::vector<std::vector<int>> &lat) {
         return calculateTotalEnergy(lat);
     };
 
-    // Avg Energy change with respect to temperature (specific heat in T)
+    // avg Energy and rate of change with respect to T
     auto [averageEnergy_T, acceptanceRate_T] = mhIsing.integrateParallelIsing(energyFunction, numPoints, lattice, T, numChains);
     auto [averageEnergy_TdT, acceptanceRate_TdT] = mhIsing.integrateParallelIsing(energyFunction, numPoints, lattice, T + dT, numChains);
 
+    // compute rate of change for specific heat per particle
     double specificHeat = (averageEnergy_TdT - averageEnergy_T) / dT;
 
-    // Output
+    // output
     std::cout << "Temperature: " << T << std::endl;
     std::cout << "Average Energy at T: " << averageEnergy_T << std::endl;
     std::cout << "Average Energy at T + dT: " << averageEnergy_TdT << std::endl;

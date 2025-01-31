@@ -1,10 +1,10 @@
 #include "metropolis_hastings_ising.h"
 
-// Initialize integrator with a dummy domain (lattice is used as domain instead)
+// initialize integrator with a dummy domain (lattice is used as domain instead)
 MetropolisHastingsIsing::MetropolisHastingsIsing()
     : AbstractIntegrator(DummyDomain()) {}
 
-// flip random spin to change state
+// flip randomly selected spin to generate new state
 void MetropolisHastingsIsing::flipSpin(std::vector<std::vector<int>> &lattice, int32_t &row, int32_t &col, std::mt19937 &engine) {
     std::uniform_int_distribution<> rowDist(0, lattice.size() - 1);
     std::uniform_int_distribution<> colDist(0, lattice[0].size() - 1);
@@ -15,7 +15,7 @@ void MetropolisHastingsIsing::flipSpin(std::vector<std::vector<int>> &lattice, i
     lattice[row][col] = -lattice[row][col];
 }
 
-// energy difference for acceptance ratio
+// energy difference for acceptance ratio (to avoid running energy function twice)
 double MetropolisHastingsIsing::calculateEnergyDifference(const std::vector<std::vector<int>> &lattice, int32_t row, int32_t col) {
     size_t rows = lattice.size();
     size_t cols = lattice[0].size();
@@ -29,7 +29,7 @@ double MetropolisHastingsIsing::calculateEnergyDifference(const std::vector<std:
     return deltaE;
 }
 
-// Perform a single Metropolis-Hastings chain for the Ising model
+// perform a single Metropolis-Hastings chain for the Ising model
 std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
     const std::function<double(const std::vector<std::vector<int>> &)> &f,
     size_t numPoints,
@@ -43,6 +43,7 @@ std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
 
     std::uniform_real_distribution<> unifDist(0.0, 1.0);
 
+    // main sampling loop
     for (size_t i = 0; i < numPoints; ++i) {
         std::vector<std::vector<int>> candidateLattice = lattice;
         int32_t row, col;
@@ -50,7 +51,6 @@ std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
 
         // acceptance ratio uses energy difference as probability of change
         double deltaE = calculateEnergyDifference(lattice, row, col);
-
         double acceptanceRatio = exp(-deltaE / temperature);
 
         if (unifDist(engine) <= acceptanceRatio) {
@@ -65,7 +65,7 @@ std::pair<double, int32_t> MetropolisHastingsIsing::integrateSingleChainIsing(
     return {sumF / samples, accepted};
 }
 
-// Perform parallel computation of energy average for the Ising model using multiple chains
+// perform parallel computation of energy average for the Ising model using multiple chains
 std::pair<double, double> MetropolisHastingsIsing::integrateParallelIsing(
     const std::function<double(const std::vector<std::vector<int>> &)> &f,
     size_t numPoints,
@@ -73,7 +73,7 @@ std::pair<double, double> MetropolisHastingsIsing::integrateParallelIsing(
     double temperature,
     size_t numChains
 ) {
-    // initialize engines from abstractIntegrator
+    // initialize engines through abstractIntegrator
     initializeEngines(numChains);
     size_t pointsPerChain = numPoints / numChains;
 
