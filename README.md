@@ -164,3 +164,22 @@ The program shows:
 
 <img src="img/circle.png" width="500">
 <img src="img/triangle.png" width="500">
+
+## Ising Model application
+
+The 2D Ising model is a fundamental tool used to simulate the behavior of magnetic materials and phase transitions. It operates on a square lattice grid, where each intersection point—or lattice site—carries a spin that can be in one of two states: up (+1) or down (−1).
+
+Estimating quantities like the specific heat per particle involves integrating over all possible configurations of the system. However, it's difficult to sample from the probability distribution over the possible states of the system. To overcome this, we employ a modified Metropolis-Hastings algorithm, with the following key adaptations:
+
+- Square Lattice Domain: the simulation is conducted on a two-dimensional square lattice, reflecting the geometric structure of the material being modeled.
+
+- Local Spin Updates: at each step, a lattice site is randomly selected, and its spin is flipped to propose a new state. This local update mechanism allows the system to explore the configuration space efficiently.
+
+- Energy-Based Acceptance Criterion: the acceptance probability for the proposed state is determined by a target distribution derived from the system's energy function. Specifically, the acceptance ratio $A = \min\left(1, e^{-\Delta E / k_B T}\right)$, where Δ𝐸 is the change in energy resulting from the spin flip, $𝑘_𝐵$ is Boltzmann's constant, and 𝑇 is the temperature. This criterion ensures that the algorithm favors moves that decrease the system's energy while still allowing for occasional increases to escape local minima.
+
+Through this stochastic process, the algorithm generates a representative set of states that accurately reflect the thermal fluctuations of the system at a given temperature. The expected value of the energy, $\langle E \rangle$, is calculated by averaging the energies of these sampled configurations. This expectation effectively approximates the integral over all possible states.
+
+From this averaged energy, the specific heat per particle, 𝐶𝑣, can be determined by examining how $\langle E \rangle$ changes with temperature:
+$$C_v = \frac{\partial \langle E \rangle}{\partial T} = \frac{\langle E^2 \rangle - \langle E \rangle^2}{k_B T^2}$$
+
+This expression relates the specific heat to the variance of the energy, highlighting how fluctuations become significant near critical points. In the context of the Ising model, analyzing 𝐶𝑣 allows us to investigate phase transitions, such as the shift from ordered (magnetized) to disordered (non-magnetized) states as temperature varies.
