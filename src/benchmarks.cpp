@@ -473,6 +473,106 @@ void MHintegration() {
     }
 }
 
+void tetrahedron_integration(){
+
+    std::vector<std::vector<double>> tetrahedronVertices = {
+        {0.0, 0.0, 0.0},  // Vertex 1
+        {1.0, 0.0, 0.0},  // Vertex 2
+        {0.0, 1.0, 0.0},  // Vertex 3
+        {0.0, 0.0, 1.0}   // Vertex 4
+    };
+
+    Polytopes tetrahedron(tetrahedronVertices);
+    MonteCarloIntegrator mcIntegrator(tetrahedron);
+
+    auto f = [](const std::vector<double>& point) -> double {
+        // f(x,y,z) = x + y
+        return point[0] + point[1];
+    };
+
+      std::cout << "\nIntegrating f(x,y) = x + y "
+              << "over the area inside the 3D unit hypercube :\n";
+    std::cout << "Expected result 0.0833333 " << "\n\n";
+
+    std::vector<MCResultRow> tetraData;
+    for (size_t numPoints : numPointsValues) {
+        auto start = std::chrono::high_resolution_clock::now();
+        double result = mcIntegrator.integrate(f, numPoints, numThreads);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        MCResultRow row;
+        row.numPoints = numPoints;
+        row.gridDim   = "N/A";
+        row.timeStd   = std::to_string(duration.count());
+        row.timeStrat = "-";
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(6) << result;
+        row.stdResult    = oss.str();
+        row.stratResult  = "-";
+        tetraData.push_back(row);
+
+    
+        std::cout << "Tetrahedron: NumPoints=" << numPoints 
+                  << " Time=" << duration.count() << " ms "
+                  << " Result=" << result << "\n";
+    }
+    exportIntegrationResults("resultsTetrahedron.txt", tetraData);
+    std::cout << "\nSaved txt file: resultsTetrahedron.txt\n";
+}
+
+
+void simplex5DIntegration() {
+    std::vector<std::vector<double>> simplex5D = {
+        {0.0, 0.0, 0.0, 0.0, 0.0},
+        {1.0, 0.0, 0.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0, 0.0, 0.0},
+        {0.0, 0.0, 1.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0, 0.0, 1.0}
+    };
+
+    Polytopes simplex(simplex5D);
+    MonteCarloIntegrator mcIntegrator(simplex);
+
+    auto f = [](const std::vector<double>& point) -> double {
+        // f(x0,x1,x2,x3,x4)= x0+x1+x2
+        return point[0] + point[1] + point[2];
+    };
+
+     std::cout << "\nIntegrating f = x + y + z "
+              << "over the area inside the 5D unit hypercube :\n";
+    std::cout << "Expected result 0.00417 " << "\n\n";
+
+    std::vector<MCResultRow> simplexData;
+    for (size_t numPoints : numPointsValues) {
+        auto start = std::chrono::high_resolution_clock::now();
+        double result = mcIntegrator.integrate(f, numPoints, numThreads);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        MCResultRow row;
+        row.numPoints = numPoints;
+        row.gridDim   = "N/A";
+        row.timeStd   = std::to_string(duration.count());
+        row.timeStrat = "-";
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(6) << result;
+        row.stdResult    = oss.str();
+        row.stratResult  = "-";
+        simplexData.push_back(row);
+
+        std::cout << "5D Simplex: NumPoints=" << numPoints 
+                  << " Time=" << duration.count() << " ms "
+                  << " Result=" << result << "\n";
+    }
+    exportIntegrationResults("resultsSimplex5D.txt", simplexData);
+    std::cout << "\nSaved txt file: resultsSimplex5D.txt\n";
+}
+
+
+
+
 void benchmarks() {
     numThreads = std::thread::hardware_concurrency();
     if (numThreads == 0) {
@@ -481,9 +581,12 @@ void benchmarks() {
     }
     std::cout << "Using " << numThreads << " threads.\n";
 
-    circleIntegration();
-    triangleIntegration();
-    fiveDimIntegration();
-    twelveDimIntegration();
-    MHintegration();
+   // circleIntegration();
+   // triangleIntegration();
+   // fiveDimIntegration();
+   // twelveDimIntegration();
+   // MHintegration();
+    tetrahedron_integration();
+     simplex5DIntegration();
+
 }
