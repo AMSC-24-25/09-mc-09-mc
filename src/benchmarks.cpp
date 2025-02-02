@@ -581,11 +581,11 @@ void benchmarks() {
     }
     std::cout << "Using " << numThreads << " threads.\n";
 
-   // circleIntegration();
-   // triangleIntegration();
-   // fiveDimIntegration();
-   // twelveDimIntegration();
-   // MHintegration();
+   circleIntegration();
+   triangleIntegration();
+   fiveDimIntegration();
+   twelveDimIntegration();
+   MHintegration();
     tetrahedron_integration();
      simplex5DIntegration();
 
