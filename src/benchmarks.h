@@ -7,6 +7,7 @@
 #include "integrators/monte_carlo_integrator.h"
 #include "domain/hypersphere.h"
 #include "domain/polygon2d.h"
+#include "domain/polytope.h"
 
 #include <fstream>
 #include <iostream>
