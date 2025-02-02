@@ -3,7 +3,7 @@
 #include <libqhullcpp/QhullFacet.h>
 #include <libqhullcpp/QhullFacetList.h>
 #include <libqhullcpp/QhullVertex.h>
-#include <libqhullcpp/QhullVertexSet.h>
+#include <libqhullcpp/QhullVertexSet.h> 
 #include <Eigen/Dense>
 #include <iostream>
 #include <stdexcept>
@@ -17,55 +17,56 @@ Polytopes::Polytopes(const std::vector<std::vector<double>>& vertices)
     }
 }
 
+// This version works for any n-dimensional simplex (n+1 vertices in R^n).
+bool Polytopes:: contains(const std::vector<double>& point) const {
+        size_t n_points = vertices.size();
+        size_t n_dim = point.size();
 
+        if (n_dim != vertices[0].size())
+            throw std::invalid_argument("Point dimension does not match polytope dimension.");
 
-// Check if a point lies within the polytope
-bool Polytopes::contains(const std::vector<double>& point) const {
-    size_t n_points = vertices.size(); // Number of vertices
-    size_t n_dim = point.size();       // Dimensionality of the point
+        // For an n-dimensional simplex, we require exactly n+1 vertices.
+        if (n_points != n_dim + 1)
+            throw std::invalid_argument("The polytope is not an n-dimensional simplex (expected n+1 vertices).");
 
-    // Ensure the point and vertices have compatible dimensions
-    if (n_dim != vertices[0].size()) {
-        throw std::invalid_argument("Point dimensionality does not match the polytope.");
-    }
+        // Use the first vertex as the reference: v0.
+        Eigen::VectorXd v0(n_dim);
+        for (size_t j = 0; j < n_dim; ++j)
+            v0(j) = vertices[0][j];
 
-    // Formulate the A_eq matrix (transpose of vertices + 1 row of ones)
-    Eigen::MatrixXd A_eq(n_dim + 1, n_points);
-    for (size_t i = 0; i < n_points; ++i) {
-        for (size_t j = 0; j < n_dim; ++j) {
-            A_eq(j, i) = vertices[i][j]; // Transpose of vertices
-        }
-        A_eq(n_dim, i) = 1.0; // Last row is all ones
-    }
-
-    // Formulate the b_eq vector (the target point + 1 for convex combination)
-    Eigen::VectorXd b_eq(n_dim + 1);
-    for (size_t i = 0; i < n_dim; ++i) {
-        b_eq(i) = point[i];
-    }
-    b_eq(n_dim) = 1.0;
-
-    // Objective function (minimize a zero vector since we're only checking feasibility)
-    Eigen::VectorXd c = Eigen::VectorXd::Zero(n_points);
-
-    // Solve the linear programming problem using a simplex algorithm
-    Eigen::VectorXd solution(n_points);
-    try {
-        // Use Eigen's full-pivot solver to find a solution
-        Eigen::ColPivHouseholderQR<Eigen::MatrixXd> solver(A_eq.transpose());
-        solution = solver.solve(b_eq);
-
-        // Check if all coefficients are non-negative (convex combination constraint)
-        for (size_t i = 0; i < n_points; ++i) {
-            if (solution(i) < -1e-9) {
-                return false; // Not a valid convex combination
+        // Build the n x n matrix M whose columns are: v_i - v0 for i = 1 ... n.
+        Eigen::MatrixXd M(n_dim, n_dim);
+        for (size_t i = 0; i < n_dim; ++i) {
+            for (size_t j = 0; j < n_dim; ++j) {
+                M(j, i) = vertices[i + 1][j] - v0(j);
             }
         }
-        return true; // Point is inside the convex hull
-    } catch (...) {
-        return false; // If any error occurs during the solving process
+
+        // Compute the right-hand side: p - v0, where p is the given point.
+        Eigen::VectorXd rhs(n_dim);
+        for (size_t j = 0; j < n_dim; ++j)
+            rhs(j) = point[j] - v0(j);
+
+        // Solve for the barycentric coordinates corresponding to vertices 1...n.
+        // (These are the λ_i for i=1...n.)
+        Eigen::VectorXd lambda = M.colPivHouseholderQr().solve(rhs);
+
+        // Compute lambda0 = 1 - (λ_1 + λ_2 + ... + λ_n)
+        double lambda0 = 1.0 - lambda.sum();
+
+        // Allow a small numerical tolerance.
+        double tol = 1e-6;
+
+        // For the point to be inside, each barycentric coordinate must be >= -tol.
+        if (lambda0 < -tol)
+            return false;
+        for (int i = 0; i < lambda.size(); ++i) {
+            if (lambda(i) < -tol)
+                return false;
+        }
+        return true;
     }
-}
+
 
 size_t Polytopes::getDimensions() const {
     return vertices.empty() ? 0 : vertices[0].size();
@@ -89,24 +90,13 @@ std::vector<std::pair<double, double>> Polytopes::getBounds() const {
     return bounds;
 }
 
-
-
-
-
 double Polytopes::getBoundedVolume() const {
-    // Decompose the polytope into simplexes
-    auto simplexes = decomposePolytope(vertices);
-
-    // Calculate the total volume by summing up simplex volumes
-    double totalVolume = 0.0;
-    for (const auto& simplex : simplexes) {
-        double simplexVolume = calculateSimplexVolume(simplex);
-        totalVolume += simplexVolume;
-    }
-
-    return totalVolume;
+    auto bounds = getBounds();
+        double volume = 1.0;
+        for (const auto& b : bounds)
+            volume *= (b.second - b.first);
+        return volume;
 }
-
 
 // Function to decompose a nD polytope into simplexes
 std::vector<std::vector<std::vector<double>>> Polytopes::decomposePolytope (
