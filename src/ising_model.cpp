@@ -5,7 +5,7 @@ double calculateTotalEnergy(const std::vector<std::vector<int>> &lattice) {
     double energy = 0.0;
     for (size_t i = 0; i < lattice.size(); ++i) {
         for (size_t j = 0; j < lattice[i].size(); ++j) {
-            int32_t spin = lattice[i][j];
+            int32_t spin = lattice[i][j];//@note is there a reason for int32?
             int32_t rightNeighbor = lattice[i][(j + 1) % lattice[i].size()];
             int32_t bottomNeighbor = lattice[(i + 1) % lattice.size()][j];
             energy -= spin * (rightNeighbor + bottomNeighbor);
@@ -16,6 +16,7 @@ double calculateTotalEnergy(const std::vector<std::vector<int>> &lattice) {
 
 // execute ising model and compute specific heat per particle
 void isingModel() {
+    //@note better put these parameters into a struct
     size_t latticeSize = 20;     // size of the square lattice
     double T = 4.5;              // temperature of the system
     double dT = 0.1;            // increment in T
@@ -24,7 +25,7 @@ void isingModel() {
     size_t numChains = std::thread::hardware_concurrency();
     if (numChains == 0) {
         // fallback
-        numChains = 16;
+        numChains = 16;//@note why is this needed?
     }
     std::cout << "Using " << numChains << " threads and " << numPoints << " points.\n";
 

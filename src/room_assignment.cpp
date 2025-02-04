@@ -32,7 +32,7 @@ double RoomAssignment::calculateTotalDislikes() {
     return sum;
 }
 
-std::pair<int, int> RoomAssignment::selectRandomStudents() {
+std::pair<int, int> RoomAssignment::selectRandomStudents() {//@note this method should be const
     std::uniform_int_distribution<> dis(0, n - 1);
     int s1 = dis(gen);
     int s2;
@@ -52,7 +52,7 @@ void RoomAssignment::recordMetrics(int iteration, double temperature, double cos
 }
 
 void RoomAssignment::solve() {
-    double temperature = 1.0;
+    double temperature = 1.0;//@note better put this stuff in a struct, maybe with a method that anable to change the defaults
     int iterations = 0;
     int max_iterations = 1000;
     int no_changes = 0;
@@ -93,7 +93,7 @@ void RoomAssignment::solve() {
             recordMetrics(iterations, temperature, current_cost, acceptance_rate);
         }
 
-        temperature *= 0.999;
+        temperature *= 0.999;//@note better not have contants hardwired. Treat it as a parameter
         iterations++;
     }
 
@@ -135,6 +135,7 @@ void RoomAssignment::printAssignments() {
     }
 }
 
+//@note I would have separated the tools of your library from the examples
 void room_assignment_example() {
     // Example with 12 students (6 rooms)
     int n = 12;
@@ -157,7 +158,7 @@ void room_assignment_example() {
         {0.4, 0.3, 0.5, 0.8, 0.6, 0.2, 0.1, 0.3, 0.5, 0.6, 0.7, 0.0}  // Student 11
     };
 
-    try {
+    try {//@note nice using exceptions
         // Create solver with 12 students
         RoomAssignment solver(n, dislikes);
 
