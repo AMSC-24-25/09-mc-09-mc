@@ -4,6 +4,10 @@ This project demonstrates parallel numerical integration of functions over vario
 methods. It includes implementations of standard Monte Carlo integration, stratified sampling, and Metropolis-Hastings
 sampling.
 
+## Presentation
+
+https://docs.google.com/presentation/d/1e6osA3i9tdfO_xjJVU_0gRxj43x0pYEDDTybEYEgxOs
+
 ## Understanding Monte Carlo Integration
 
 Monte Carlo integration is a technique for approximating integrals by using random samples. Instead of analytically
